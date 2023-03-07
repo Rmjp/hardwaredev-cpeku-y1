@@ -1,4 +1,5 @@
-import { db, Parking, ParkingCar } from './lib/database.js';
+import { db, Parking, ParkingCar } from './lib/park.js';
+import { User } from './lib/user.js';
 import http from 'http';
 
 
@@ -20,6 +21,5 @@ server.listen(3000, () => {
 // await y.get("parking1", 1);
 // console.log(y);
 
-let x = new Parking;
-await x.get("parking1");
-x.print();
+let x = new User;
+x.register("test", "test", "password");
