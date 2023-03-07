@@ -19,6 +19,7 @@ export class User{
         this.email = null;
         this.car_license = [];
         this.auth = false;
+        this.balance = 0;
     }
 
     async checkExist(email){
@@ -90,4 +91,18 @@ export class User{
         });
         return true;
     }
+
+    async subtractBalance(amount){
+        if (this.auth == false){
+            return false;
+        }
+        const docRef = db.collection("User").doc(this.email);
+        this.balance = await docRef.get()["balance"];
+        this.balance -= amount;
+        await docRef.update({
+            balance: this.balance
+        });
+        return true;
+    }
 }
+
