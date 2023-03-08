@@ -2,12 +2,16 @@ import { db, Parking, ParkingCar } from './lib/park.js';
 import { User } from './lib/user.js';
 import { License } from './lib/carLicense.js';
 
-// Import the Express module
-import express from 'express';
+import dotenv from 'dotenv';
+import express, { response } from 'express';
 import bodyParser from 'body-parser';
 
+import axios from 'axios';
+import fs from 'fs';
 import multer from 'multer';
-const upload = multer({ dest: 'uploads/' });
+import { env } from 'process';
+import FormData  from 'form-data';
+
 // Create a new instance of the Express application
 const app = express();
 app.use(bodyParser.json());
@@ -19,11 +23,20 @@ app.post('/api/carparking/', (req, res) => {
   res.send('Hello, World!');
 });
 
-app.post('/upload', upload.single('image'), (req, res) => {
-  console.log(req.file); // Output: { fieldname: 'image', originalname: 'example.jpg', encoding: '7bit', mimetype: 'image/jpeg', destination: 'uploads/', filename: '12bbefee41b81e285b8f266c54e6bde1', path: 'uploads/12bbefee41b81e285b8f266c54e6bde1', size: 26948 }
-  res.send('Image uploaded successfully');
+const upload = multer();
+app.post('/upload', upload.single('file'), async (req, res) => {
+  console.log(req.file.buffer);
+  const formData = new FormData();
+  formData.append('file', req.file.buffer, req.file.originalname);
+  axios.post('https://api.aiforthai.in.th/panyapradit-lpr/', formData, {headers: {'Content-Type': 'multipart/form-data', "Apikey": process.env.LRPKEY }}).then(response => {
+    console.log(response.data);
+    res.send('File uploaded successfully');
+  }).catch(error => {
+    console.error(error);
+    res.sendStatus(200);
+  });
+  
 });
-
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
