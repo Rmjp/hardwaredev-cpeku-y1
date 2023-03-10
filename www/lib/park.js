@@ -76,7 +76,7 @@ export class Parking {
         });
         this.collection = collection;
     }
-
+    
     print() {
         console.log("collection: " + this.collection);
         console.log("capacity: " + this.capacity);

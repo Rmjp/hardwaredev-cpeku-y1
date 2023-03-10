@@ -1,7 +1,10 @@
 import Firestore from '@google-cloud/firestore';
 import dotenv from 'dotenv';
 import crypto from "crypto";
+import { Cache } from './cache.js';
+import { channel } from 'diagnostics_channel';
 
+caches = new Cache(100);
 
 dotenv.config();
 const projectId = process.env.projectId
@@ -23,23 +26,41 @@ export class User{
     }
 
     async checkExist(email){
-        const docRef = db.collection("User").doc(email);
-        let doc = await docRef.get();
-        if (doc.exists){
-            return true;
+        if (caches.get(email) == null){
+            const docRef = db.collection("User").doc(email);
+            let doc = await docRef.get();
+            if (doc.exists){
+                caches.set(email, doc.data());
+                return true;
+            }
+            else{
+                caches.set(email, false);
+                return false;
+            }
         }
-        return false;
+        return caches.get(email) != false;
     }
 
     async getAuth(email, password){
         if (this.checkExist(email) == false){
             return false;
         }
-        const docRef = db.collection("User").doc(this.email);
-        let salt = await docRef.select("salt").get();
-        password = crypto.pbkdf2Sync(password, this.salt, 100000, 64, 'sha512').toString('hex');
-        let hashpassword = await docRef.select("hashpassword").get();
-        if (password == hashpassword){
+        if (caches.get(email) == null || caches.get(email) == false){
+            const docRef = db.collection("User").doc(this.email);
+            let salt = await docRef.select("salt").get();
+            password = crypto.pbkdf2Sync(password, this.salt, 100000, 64, 'sha512').toString('hex');
+            let hashpassword = await docRef.select("hashpassword").get();
+            if (password == hashpassword){
+                caches.set(email, this);
+                this.auth = true;
+                return true;
+            }
+            else{
+                caches.set(email, this);
+                return false;
+            }
+        }
+        if(caches.get(email)["hashpassword"] == crypto.pbkdf2Sync(password, caches.get(email)["salt"], 100000, 64, 'sha512').toString('hex')){
             this.auth = true;
             return true;
         }
@@ -47,17 +68,25 @@ export class User{
     }
 
     async get(email){
-        const docRef = db.collection("User").doc(email);
-        if (this.checkExist(email) == false){
+        if(caches.get(email) != null && caches.get(email) != false){
+            const docRef = db.collection("User").doc(email);
+            if (this.checkExist(email) == false){
+                return false;
+            }
+            if (this.auth == false){
+                return false;
+            }
+            let doc = await docRef.get();
+            this.name = doc.data().name;
+            this.email = doc.data().email;
+            this.car_license = doc.data().car_license;
+            caches.set(email, this);
+            return true;
+        }
+        if(this.auth == false){
             return false;
         }
-        if (this.auth == false){
-            return false;
-        }
-        let doc = await docRef.get();
-        this.name = doc.data().name;
-        this.email = doc.data().email;
-        this.car_license = doc.data().car_license;
+        this = caches.get(email);
         return true;
     }
 
@@ -69,14 +98,17 @@ export class User{
         this.email = email;
         let salt = crypto.randomBytes(16).toString('hex');
         let hashpassword = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
-        const docRef = db.collection("User").doc(this.email);
-        await docRef.set({
-            name: this.name,
-            email: this.email,
-            salt: salt,
-            hashpassword: hashpassword,
-            car_license: this.car_license
-        });
+        if(caches.get(email) == null || caches.get(email) == false){
+            const docRef = db.collection("User").doc(this.email);
+            await docRef.set({
+                name: this.name,
+                email: this.email,
+                salt: salt,
+                hashpassword: hashpassword,
+                car_license: this.car_license
+            });
+            caches.set(email, this);
+        }
         return true;
     }
 
@@ -85,10 +117,13 @@ export class User{
             return false;
         }
         this.car_license.push(car_license);
-        const docRef = db.collection("User").doc(this.email);
-        await docRef.update({
-            car_license: this.car_license
-        });
+        if(caches.get(this.email) == null || caches.get(this.email) == false){
+            const docRef = db.collection("User").doc(this.email);
+            await docRef.update({
+                car_license: this.car_license
+            });
+            caches.set(this.email, this);
+        }
         return true;
     }
 
@@ -96,8 +131,12 @@ export class User{
         if (this.auth == false){
             return false;
         }
-        const docRef = db.collection("User").doc(this.email);
-        this.balance = await docRef.get()["balance"];
+        if(caches.get(this.email) == null || caches.get(this.email) == false){
+            const docRef = db.collection("User").doc(this.email);
+            this.balance = await docRef.get()["balance"];
+            caches.set(this.email, this);
+        }
+        this = caches.get(this.email);
         this.balance -= amount;
         await docRef.update({
             balance: this.balance
