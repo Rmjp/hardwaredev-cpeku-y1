@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { Cache } from './cache.js';
 import { channel } from 'diagnostics_channel';
 
-caches = new Cache(100);
+let caches = new Cache(100);
 
 dotenv.config();
 const projectId = process.env.projectId
@@ -86,7 +86,8 @@ export class User{
         if(this.auth == false){
             return false;
         }
-        this = caches.get(email);
+        let obj = caches.get(email);
+        Object.assign(this, obj);
         return true;
     }
 
@@ -136,12 +137,22 @@ export class User{
             this.balance = await docRef.get()["balance"];
             caches.set(this.email, this);
         }
-        this = caches.get(this.email);
+        let obj = caches.get(email);
+        Object.assign(this, obj);
         this.balance -= amount;
-        await docRef.update({
-            balance: this.balance
-        });
+        // await docRef.update({
+        //     balance: this.balance
+        // });
         return true;
+    }
+
+    async getdata(){
+        return {
+            name: this.name,
+            email: this.email,
+            car_license: this.car_license,
+            balance: this.balance
+        }
     }
 }
 

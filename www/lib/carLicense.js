@@ -3,7 +3,7 @@ import Firestore from '@google-cloud/firestore';
 import dotenv from 'dotenv';
 import { Cache } from './cache.js';
 
-caches = new Cache(100);
+let caches = new Cache(100);
 
 dotenv.config();
 const projectId = process.env.projectId

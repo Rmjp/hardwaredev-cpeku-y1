@@ -34,6 +34,25 @@ cache.set_func("parking", async () => {
   return parking;
 });
 
+import jwt from 'jsonwebtoken';
+
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Missing authorization header' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    req.userData = { 
+      userId: decodedToken.userId,
+    };
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid authorization token' });
+  }
+}
 
 io.on('connection', (socket) => {
   console.log('a user connected');
@@ -114,6 +133,33 @@ app.post('/uploadout', upload.single('file'), async (req, res) => {
     res.sendStatus(200);
   });
   return;
+});
+
+app.post("/user/add", async (req, res) => {
+  const data = req.body;
+  const user = new User();
+  user.email = data.email;
+  user.password = data.password;
+  user.name = data.name;
+  try{
+    await user.register(user.name, user.email, user.password);
+    const token = jwt.sign(user.getdata(), process.env.JWT_SECRET, { expiresIn: '24h' });
+    const resdata = {
+      error: false,
+      msg: "Register success",
+      token: token,
+    };
+    res.send(JSON.stringify(resdata));
+    return;
+  }
+  catch (error) {
+    const resdata = {
+      error: true,
+      msg: error,
+    };
+    res.send(JSON.stringify(resdata));
+    return;
+  }
 });
 
 app.get('/park', async (req, res) => {
