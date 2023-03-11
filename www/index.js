@@ -29,7 +29,8 @@ import http from 'http';
 const server = http.createServer(app);
 import { Server } from "socket.io";
 
-const io = new Server(server, { cors: { origin: '*' } , path: '/socket'});
+const io = new Server(server, { cors: { origin: '*' } });
+// const io = new Server(server);
 const iolcd = new Server(server, { path: '/lcd' });
 
 import { Cache } from './lib/cache.js';
@@ -199,7 +200,7 @@ app.get('/', (req, res) => {
 });
 
 // // Start the Express application and listen for incoming requests on port 3000
-const hostname =  "172.20.10.3";
+const hostname =  "0.0.0.0";
 const port = "3000";
 server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
