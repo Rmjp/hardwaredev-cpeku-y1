@@ -61,7 +61,7 @@ export class License{
         this.license = license;
         this.email = await this.checkGetEmail(license);
         this.come = new Date();
-        if (caches.get(licensel) != null){
+        if (caches.get(license) != null){
             caches.set(license, this);
         }
         return true;

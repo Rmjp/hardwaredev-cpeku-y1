@@ -11,6 +11,10 @@ import fs from 'fs';
 import multer from 'multer';
 import { env } from 'process';
 import FormData  from 'form-data';
+import JSON from 'JSON';
+
+import cors from 'cors';
+
 
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -19,12 +23,14 @@ const __dirname = dirname(__filename);
 
 // Create a new instance of the Express application
 const app = express();
+app.use(cors());
 app.use(bodyParser.json());
 import http from 'http';
 const server = http.createServer(app);
 import { Server } from "socket.io";
 
-const io = new Server(server);
+const io = new Server(server, { cors: { origin: '*' } , path: '/socket'});
+const iolcd = new Server(server, { path: '/lcd' });
 
 import { Cache } from './lib/cache.js';
 const cache = new Cache(100);
@@ -72,6 +78,11 @@ io.on('connection', (socket) => {
   });
 });
 
+iolcd.on('connection', (socket) => {
+  console.log('a user connected');
+
+});
+
 // Define a route that will handle HTTP GET requests to the root URL '/'
 app.post('/api/carparking/', (req, res) => {
   io.emit('msg', "test");
@@ -82,7 +93,7 @@ app.post('/api/carparking/', (req, res) => {
 
 const upload = multer();
 app.post('/uploadin', upload.single('file'), async (req, res) => {
-  console.log(req.file.buffer);
+  console.log(req);
   const formData = new FormData();
   formData.append('file', req.file.buffer, req.file.originalname);
   axios.post('https://api.aiforthai.in.th/panyapradit-lpr/', formData, {headers: {'Content-Type': 'multipart/form-data', "Apikey": process.env.LRPKEY }}).then( async response => {
@@ -164,8 +175,9 @@ app.post("/user/add", async (req, res) => {
 
 app.get('/park', async (req, res) => {
   const data = {};
+  console.log("me kon chai");
   Object.assign(data, await cache.get("parking"));
-  res.send(data);
+  res.json(data.car[0]);
 });
 
 app.post("/esp/ir", async (req, res) => {
@@ -187,6 +199,8 @@ app.get('/', (req, res) => {
 });
 
 // // Start the Express application and listen for incoming requests on port 3000
-server.listen(3000, () => {
-  console.log('Express server listening on port 3000...');
+const hostname =  "172.20.10.3";
+const port = "3000";
+server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`);
 });

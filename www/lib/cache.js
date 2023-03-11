@@ -6,7 +6,7 @@ export class Cache {
     }
   
     async get(key) {
-      if (!this.cache.has(key)) {
+      if (!this.cache.has(key) && this.cachef.has(key)) {
         const vl = await this.cachef.get(key)();
         this.set(key, vl);
       }
