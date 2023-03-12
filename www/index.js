@@ -40,6 +40,7 @@ cache.set_func("parking", async () => {
 });
 
 import jwt from 'jsonwebtoken';
+import { randomInt } from 'crypto';
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -79,56 +80,81 @@ io.on('connection', (socket) => {
 
 const upload = multer();
 app.post('/uploadin', upload.single('file'), async (req, res) => {
-  console.log(req.file.buffer);
-  console.log(req.file.originalname);
+  // console.log(req.file.buffer);
+  // console.log(req.file.originalname);
   // fs.WriteStream("test.jpg").write(req.file.buffer);
   const formData = new FormData();
   formData.append('file', req.file.buffer, "test.jpg");
   axios.post('https://api.aiforthai.in.th/panyapradit-lpr/', formData, {headers: {'Content-Type': 'multipart/form-data', "Apikey": process.env.LRPKEY }}).then( async response => {
-    console.log(response.data);
-    const recognition = response.data.recognition;
+    // console.log(response.data);
+    const recognition = response.data.recognition.replace("/", "-").replace("\n", "-").replace(" ", "");
+    console.log(recognition);
     const license = new License();
     const email = await license.checkGetEmail(recognition);
-    if (email == ""){
+    console.log(email);
+    if (email == "" || email == undefined){
       res.send('License is not registered');
+      id_lcd_msg = randomInt(1, 100000000);
+      lcd_msg = "reg";
       return;
     }
     else{
       await license.comeIn(recognition);
-      res.send('License is registered');
+      id_lcd_msg = randomInt(1, 100000000);
+      const user = new User();
+      user.auth = true;
+      await user.get(email);
+      lcd_msg = "Welcome to parking\n" + user.name + "\n" + "Balance: " + await user.balance + " Baht";
+      console.log(lcd_msg);
+      res.sendStatus(200);
       return;
     }
     res.send('File uploaded successfully');
 
   }).catch(error => {
     console.error(error);
+    id_lcd_msg = randomInt(1, 100000000);
+    lcd_msg = "Error.\n Please take a card";
     res.sendStatus(200);
   });
   return;
 });
 
 app.post('/uploadout', upload.single('file'), async (req, res) => {
-  console.log(req.file.buffer);
+  // console.log(req.file.buffer);
   const formData = new FormData();
-  formData.append('file', req.file.buffer, req.file.originalname);
+  formData.append('file', req.file.buffer, "test.jpg");
   axios.post('https://api.aiforthai.in.th/panyapradit-lpr/', formData, {headers: {'Content-Type': 'multipart/form-data', "Apikey": process.env.LRPKEY }}).then( async response => {
-    console.log(response.data);
-    const recognition = response.data.recognition;
+    // console.log(response.data);
+    const recognition = response.data.recognition.replace("/", "-").replace("\n", "-").replace(" ", "");
+    console.log(recognition);
     const license = new License();
     const email = await license.checkGetEmail(recognition);
-    if (email == ""){
+    console.log(email);
+    if (email == "" || email == undefined){
       res.send('License is not registered');
+      id_lcd_msg = randomInt(1, 100000000);
+      lcd_msg = "See you again.";
       return;
     }
     else{
       const time = await license.comeOut(recognition);
-      res.send('License is registered');
+      id_lcd_msg = randomInt(1, 100000000);
+      const user = new User();
+      user.auth = true;
+      await user.get(email);
+      await user.subtractBalance(time*0.5);
+      lcd_msg = "Thank you.\n" + user.name + "\n" + "Balance: " + await user.balance + " Baht";
+      console.log(lcd_msg);
+      res.sendStatus(200);
       return;
     }
     res.send('File uploaded successfully');
 
   }).catch(error => {
     console.error(error);
+    id_lcd_msg = randomInt(1, 100000000);
+    lcd_msg = "Error.\n Put your card";
     res.sendStatus(200);
   });
   return;

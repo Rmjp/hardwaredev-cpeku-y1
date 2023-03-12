@@ -88,6 +88,7 @@ export class User{
         }
         let obj = caches.get(email);
         Object.assign(this, obj);
+        this.auth = true;
         return true;
     }
 
@@ -137,7 +138,7 @@ export class User{
             this.balance = await docRef.get()["balance"];
             caches.set(this.email, this);
         }
-        let obj = caches.get(email);
+        let obj = caches.get(this.email);
         Object.assign(this, obj);
         this.balance -= amount;
         // await docRef.update({

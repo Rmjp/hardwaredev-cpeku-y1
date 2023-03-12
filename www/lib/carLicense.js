@@ -22,19 +22,22 @@ export class License{
     }
 
     async checkGetEmail(license){
-        if (caches.get(license) == null){
+        if (caches.cache.has(license) == false){
             const docRef = db.collection("License").doc(license);
             let doc = await docRef.get();
+            console.log("checkEmail: ", license," of:",doc.data());
             if (doc.exists){
-                caches.set(license, doc.data()["email"]);
-                return doc.data()["email"];
+                Object.assign(this, doc.data());
+                caches.set(license, this);
+                return this.email;
             }
             else{
                 caches.set(license, "");
                 return "";
             }
         }
-        return caches.get(license);
+        Object.assign(this, await caches.get(license));
+        return this.email;
     }
 
     async register(license, email){
@@ -61,9 +64,7 @@ export class License{
         this.license = license;
         this.email = await this.checkGetEmail(license);
         this.come = new Date();
-        if (caches.get(license) != null){
-            caches.set(license, this);
-        }
+        caches.set(license, this);
         return true;
     }
 
@@ -73,11 +74,9 @@ export class License{
             return false;
         }
         this.license = license;
-        const time = new Date() - this.come;
+        const time = new Date().getMinutes() - this.come.getMinutes();
         this.come = null;
-        if (caches.get(license) != null){
-            caches.set(license, this);
-        }
+        caches.set(license, this);
         return time;
     }
 }
