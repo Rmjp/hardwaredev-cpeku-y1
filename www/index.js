@@ -30,8 +30,6 @@ const server = http.createServer(app);
 import { Server } from "socket.io";
 
 const io = new Server(server, { cors: { origin: '*' } });
-// const io = new Server(server);
-const iolcd = new Server(server, { path: '/lcd' });
 
 import { Cache } from './lib/cache.js';
 const cache = new Cache(100);
@@ -79,24 +77,13 @@ io.on('connection', (socket) => {
   });
 });
 
-iolcd.on('connection', (socket) => {
-  console.log('a user connected');
-
-});
-
-// Define a route that will handle HTTP GET requests to the root URL '/'
-app.post('/api/carparking/', (req, res) => {
-  io.emit('msg', "test");
-  let data = req.body;
-  console.log(data);
-  res.send('Hello, World!');
-});
-
 const upload = multer();
 app.post('/uploadin', upload.single('file'), async (req, res) => {
-  console.log(req);
+  console.log(req.file.buffer);
+  console.log(req.file.originalname);
+  // fs.WriteStream("test.jpg").write(req.file.buffer);
   const formData = new FormData();
-  formData.append('file', req.file.buffer, req.file.originalname);
+  formData.append('file', req.file.buffer, "test.jpg");
   axios.post('https://api.aiforthai.in.th/panyapradit-lpr/', formData, {headers: {'Content-Type': 'multipart/form-data', "Apikey": process.env.LRPKEY }}).then( async response => {
     console.log(response.data);
     const recognition = response.data.recognition;
@@ -194,13 +181,23 @@ app.post("/esp/ir", async (req, res) => {
   res.sendStatus(200);
 });
 
+let id_lcd_msg = 1;
+let lcd_msg = "reg";
+app.get("/lcd/id", async (req, res) => {
+  res.status(200).send(id_lcd_msg.toString());
+});
+
+app.get("/lcd/msg", async (req, res) => {
+  res.send(lcd_msg);
+});
+
 app.get('/', (req, res) => {
   const filePath = __dirname + '/test.html';
   res.sendFile(filePath);
 });
 
 // // Start the Express application and listen for incoming requests on port 3000
-const hostname =  "0.0.0.0";
+const hostname =  "192.168.1.102";
 const port = "3000";
 server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
