@@ -48,11 +48,15 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ error: 'Missing authorization header' });
   }
 
-  const token = authHeader.split(' ')[1];
+  // const token = authHeader.split(' ')[1];
+  const token = authHeader;
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     req.userData = { 
-      userId: decodedToken.userId,
+      name: decodedToken.name,
+      balance: decodedToken.balance,
+      email: decodedToken.email,
+      car_license: decodedToken.car_license,
     };
     next();
   } catch (error) {
@@ -82,7 +86,7 @@ const upload = multer();
 app.post('/uploadin', upload.single('file'), async (req, res) => {
   // console.log(req.file.buffer);
   // console.log(req.file.originalname);
-  // fs.WriteStream("test.jpg").write(req.file.buffer);
+  fs.WriteStream("test.jpg").write(req.file.buffer);
   const formData = new FormData();
   formData.append('file', req.file.buffer, "test.jpg");
   axios.post('https://api.aiforthai.in.th/panyapradit-lpr/', formData, {headers: {'Content-Type': 'multipart/form-data', "Apikey": process.env.LRPKEY }}).then( async response => {
@@ -143,7 +147,7 @@ app.post('/uploadout', upload.single('file'), async (req, res) => {
       const user = new User();
       user.auth = true;
       await user.get(email);
-      await user.subtractBalance(time*0.5);
+      await user.subtractBalance(time*1);
       lcd_msg = "Thank you.\n" + user.name + "\n" + "Balance: " + await user.balance + " Baht";
       console.log(lcd_msg);
       res.sendStatus(200);
@@ -160,7 +164,7 @@ app.post('/uploadout', upload.single('file'), async (req, res) => {
   return;
 });
 
-app.post("/user/add", async (req, res) => {
+app.post("/user/reg", async (req, res) => {
   const data = req.body;
   const user = new User();
   user.email = data.email;
@@ -168,7 +172,9 @@ app.post("/user/add", async (req, res) => {
   user.name = data.name;
   try{
     await user.register(user.name, user.email, user.password);
-    const token = jwt.sign(user.getdata(), process.env.JWT_SECRET, { expiresIn: '24h' });
+    const data = await user.getdata();
+    console.log(JSON.stringify(data));
+    const token = jwt.sign(JSON.stringify(data), process.env.JWT_SECRET);
     const resdata = {
       error: false,
       msg: "Register success",
@@ -183,27 +189,54 @@ app.post("/user/add", async (req, res) => {
       msg: error,
     };
     res.send(JSON.stringify(resdata));
+    console.log(error);
     return;
   }
 });
 
+app.post("/user/login", async (req, res) => {
+  const data = req.body;
+  const pass = data.password;
+  const email = data.email;
+  const user = new User();
+  let chk = await user.getAuth(email, pass);
+  if (chk == true){
+    const token = jwt.sign(user.getdata().toString(), process.env.JWT_SECRET);
+    const resdata = {
+      error: false,
+      msg: "Login success",
+      token: token,
+    };
+    res.send(JSON.stringify(resdata));
+    return;
+  }
+  else{
+    const resdata = {
+      error: true,
+      msg: "Login fail",
+    };
+    res.send(JSON.stringify(resdata));
+    return;
+  }
+});
+
+
 app.get('/park', async (req, res) => {
   const data = {};
-  console.log("me kon chai");
   Object.assign(data, await cache.get("parking"));
   res.json(data.car[0]);
 });
 
 app.post("/esp/ir", async (req, res) => {
   const data = req.body;
-  console.log(data);
+  // console.log(data);
   const parking = await cache.get("parking");
   const id = data.id;
   const floor = data.floor;
   const free = data.free;
-  console.log( parking.car);
-  parking.car[floor][id] = free;
-  io.emit('parking_change', true);
+  parking.car[0][Number(id)].free = (free=="1")?true:false;
+  // console.log(data.free);
+  cache.set("parking", parking);
   res.sendStatus(200);
 });
 
@@ -217,13 +250,78 @@ app.get("/lcd/msg", async (req, res) => {
   res.send(lcd_msg);
 });
 
+app.post("/user/balance", authMiddleware, async (req, res) => {
+  const email = req.userData.email;
+  const user = new User();
+  user.auth = true;
+  console.log(req.userData);
+  await user.get(email);
+  const resdata = {
+    error: false,
+    balance: await user.balance,
+  };
+  res.send(JSON.stringify(resdata));
+});
+
+app.get("/user/license", authMiddleware, async (req, res) => {
+  const email = req.userData.email;
+  const user = new User();
+  user.auth = true;
+  await user.get(email);
+  console.log(await user.getdata());
+  const resdata = {
+    error: false,
+    license: await user.car_license,
+  };
+  console.log(resdata);
+  res.send(JSON.stringify(resdata));
+});
+
+app.post("/user/addlicense", authMiddleware, async (req, res) => {
+  const data = req.body;
+  const email = req.userData.email;
+  const user = new User();
+  user.auth = true;
+  await user.get(email);
+  user.email = email;
+  await user.addCar(data.license);
+  const resdata = {
+    error: false,
+    msg: "Add license success",
+  };
+  res.send(JSON.stringify(resdata));
+});
+
 app.get('/', (req, res) => {
   const filePath = __dirname + '/test.html';
   res.sendFile(filePath);
+  res.cookie("name", "value");
+});
+
+app.get("/test", (req, res) => {
+  const cookie = req.headers.cookie;
+  console.log(cookie.name);
+  res.sendStatus(200);
+});
+
+app.post("/user/addmoney", authMiddleware, async (req, res) => {
+  const data = req.body;
+  const email = req.userData.email;
+  const amount = data.amount;
+  const user = new User();
+  user.email = email;
+  user.auth = true;
+  await user.get(email);
+  console.log(user.balance);
+  user.auth = true;
+  await user.addBalance(amount);
+  console.log(user.balance);
+  
+  res.sendStatus(200);
 });
 
 // // Start the Express application and listen for incoming requests on port 3000
-const hostname =  "192.168.1.102";
+const hostname =  "172.20.10.3";
 const port = "3000";
 server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
