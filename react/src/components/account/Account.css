@@ -1,0 +1,195 @@
+.root-page-container {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-flex: 1;
+  flex-grow: 1;
+  -webkit-box-pack: start;
+  justify-content: flex-start;
+  padding-top: 72px;
+}
+
+.hyl-group-b[data-route-name$=postList] .root-page-container .default-layout-topbar, .hyl-group-b[data-route-name$=collectionList] .root-page-container .default-layout-topbar, .hyl-group-b[data-route-name$=replyList] .root-page-container .default-layout-topbar, .hyl-group-b[data-route-name$=favList] .root-page-container .default-layout-topbar, .hyl-group-b[data-route-name$=topicList] .root-page-container .default-layout-topbar {
+  margin-bottom: 12px;
+}
+
+.hyl-group-b .root-page-container .default-layout-topbar {
+  width: 100%;
+}
+
+.hyl-group-b .root-page-container {
+  -webkit-box-direction: normal;
+}
+
+.hyl-group-b[data-route-name$=postList] .mhy-topbar, .hyl-group-b[data-route-name$=collectionList] .mhy-topbar, .hyl-group-b[data-route-name$=replyList] .mhy-topbar, .hyl-group-b[data-route-name$=favList] .mhy-topbar, .hyl-group-b[data-route-name$=topicList] .mhy-topbar {
+  background-color: var(--default-body-color);
+}
+
+.mhy-topbar {
+  background-color: var(--primary-white-color);
+  z-index: 200;
+}
+
+.hyl-group-b[data-route-name$=postList] .mhy-topbar .mhy-topbar__container, .hyl-group-b[data-route-name$=collectionList] .mhy-topbar .mhy-topbar__container, .hyl-group-b[data-route-name$=replyList] .mhy-topbar .mhy-topbar__container, .hyl-group-b[data-route-name$=favList] .mhy-topbar .mhy-topbar__container, .hyl-group-b[data-route-name$=topicList] .mhy-topbar .mhy-topbar__container {
+  padding: 0 40px;
+  background-color: var(--primary-white-color);
+}
+
+.account-center-topbar--fixed {
+  z-index: 1000;
+}
+
+@media screen and (max-width: 1024px){
+.account-center-topbar__container {
+    max-width: 992px;
+}
+}
+@media screen and (max-width: 1287px){
+.account-center-topbar__container {
+    max-width: 1207px;
+}
+}
+.account-center-topbar__container {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  margin: 0 auto;
+  max-width: 1208px;
+  width: 100%;
+  z-index: 100;
+}
+
+.account-center-topbar__container .account-center-avatar-wrap {
+  position: relative;
+  height: 56px;
+}
+
+.account-center-topbar--fixed .account-center-avatar {
+  top: calc(50% - 16px);
+  width: 32px;
+  height: 32px;
+}
+
+.account-center-topbar__container .account-center-avatar {
+  position: relative;
+  top: -50px;
+  left: 0;
+  width: 112px;
+  height: 112px;
+  cursor: pointer;
+  -webkit-transition: height 300ms ease,width 300ms ease,top 300ms ease;
+  transition: height 300ms ease,width 300ms ease,top 300ms ease;
+}
+
+.account-center-topbar__container .account-center-user-wrap {
+  margin-left: 20px;
+  height: 56px;
+  transform: translateY(5px);
+  transition: transform 300ms ease;
+  transition: transform 300ms ease, -webkit-transform 300ms ease;
+}
+
+.account-center-topbar__container .account-center-btn-group {
+  position: absolute;
+  padding: 6px 0 6px 20px;
+  right: 0;
+  top: 0px;
+  border-radius: 22px;
+  cursor: pointer;
+  z-index: 10;
+  -webkit-transition: top 300ms ease;
+  -o-transition: top 300ms ease;
+  transition: top 300ms ease;
+}
+
+.mhy-avatar__sm {
+  width: 32px;
+  height: 32px;
+}
+
+.mhy-avatar {
+  display: inline-block;
+  position: relative;
+}
+
+@media screen and (max-width: 1024px){
+.hyl-group-b .root-page-container__content {
+    padding: 0 16px 0;
+}}
+
+@media screen and (max-width: 1287px){
+.hyl-group-b .root-page-container__content {
+    padding: 0 40px 0;
+}}
+
+@media screen and (max-width: 1024px){
+.hyl-group-b .root-page-container__content {
+    max-width: 992px;
+} }
+
+@media screen and (max-width: 1287px){
+.hyl-group-b .root-page-container__content {
+    max-width: 1207px;
+}}
+
+.hyl-group-b .root-page-container__content {
+  display: -webkit-box;
+  display: flex;
+  width: 100%;
+  -webkit-box-pack: center;
+  justify-content: center;
+  -webkit-box-align: start;
+  align-items: flex-start;
+  max-width: 1208px;
+  padding: 0 0;
+}
+
+.css-jpln7h-MuiTabs-scroller {
+  position: relative;
+  display: inline-block;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.css-1h9z7r5-MuiButtonBase-root-MuiTab-root {
+  display: inline-flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  background-color: transparent;
+  outline: 0;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: middle;
+  text-decoration: none;
+  font-family: "Roboto","Helvetica","Arial",sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  letter-spacing: 0.02857em;
+  text-transform: uppercase;
+  max-width: 360px;
+  min-width: 90px;
+  position: relative;
+  min-height: 48px;
+  flex-shrink: 0;
+  padding: 12px 16px;
+  overflow: hidden;
+  white-space: normal;
+  text-align: center;
+  flex-direction: column;
+}
