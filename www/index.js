@@ -91,6 +91,7 @@ app.post('/uploadin', upload.single('file'), async (req, res) => {
   formData.append('file', req.file.buffer, "test.jpg");
   axios.post('https://api.aiforthai.in.th/panyapradit-lpr/', formData, {headers: {'Content-Type': 'multipart/form-data', "Apikey": process.env.LRPKEY }}).then( async response => {
     // console.log(response.data);
+    response.data.recognition = "9รถ2019กรุงเทพมหานคร";
     const recognition = response.data.recognition.replace("/", "-").replace("\n", "-").replace(" ", "");
     console.log(recognition);
     const license = new License();
@@ -130,6 +131,7 @@ app.post('/uploadout', upload.single('file'), async (req, res) => {
   formData.append('file', req.file.buffer, "test.jpg");
   axios.post('https://api.aiforthai.in.th/panyapradit-lpr/', formData, {headers: {'Content-Type': 'multipart/form-data', "Apikey": process.env.LRPKEY }}).then( async response => {
     // console.log(response.data);
+    response.data.recognition = "9รถ2019กรุงเทพมหานคร";
     const recognition = response.data.recognition.replace("/", "-").replace("\n", "-").replace(" ", "");
     console.log(recognition);
     const license = new License();

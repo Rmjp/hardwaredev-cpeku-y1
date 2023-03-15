@@ -23,7 +23,7 @@ export class User{
         this.email = null;
         this.car_license = [];
         this.auth = false;
-        this.balance = 0;
+        this.balance = 100;
     }
 
     async checkExist(email){
@@ -64,7 +64,7 @@ export class User{
             }
         }
         Object.assign(this, await caches.get(email));
-        if(await this["hashpassword"] == crypto.pbkdf2Sync(password, this["salt"], 100000, 64, 'sha512').toString('hex')){
+        if(await this["hashpassword"] == crypto.pbkdf2Sync(password, this.salt, 100000, 64, 'sha512').toString('hex')){
             this.auth = true;
             return true;
         }
