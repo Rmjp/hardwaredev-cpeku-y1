@@ -3,3 +3,6 @@ env
 node_modules
 *.Identifier
 uploads
+test*
+.DS_Store
+```
